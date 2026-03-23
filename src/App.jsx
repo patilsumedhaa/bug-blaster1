@@ -1,11 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 import "./styles.css";
 import TicketForm from "./components/TicketsForm";
 
 function App() {
-  const [tickets, setTickets] = useState([]);
+  const [tickets, setTickets] = useState(() => {
+    const saved = localStorage.getItem("tickets");
+    return saved ? JSON.parse(saved) : [];
+  });
   const [editTicket, setEditTicket] = useState(null);
+
+  // 🔥 Load from localStorage
+  useEffect(() => {
+    const savedTickets = localStorage.getItem("tickets");
+    if (savedTickets) {
+      setTickets(JSON.parse(savedTickets));
+    }
+  }, []);
+
+  // 🔥 Save to localStorage
+  useEffect(() => {
+    localStorage.setItem("tickets", JSON.stringify(tickets));
+  }, [tickets]);
 
   const addOrUpdateTicket = (ticket) => {
     if (editTicket) {
@@ -25,6 +41,7 @@ function App() {
   const handleDelete = (id) => {
     setTickets((prev) => prev.filter((t) => t.id !== id));
   };
+
   return (
     <div className="App">
       <div className="container">
@@ -40,9 +57,11 @@ function App() {
           <div key={ticket.id} className="ticket-card">
             <h3>{ticket.title}</h3>
             <p>{ticket.description}</p>
-            <p>Priority: {ticket.priority}</p>
+
+            <p>Priority: {["Low", "Medium", "High"][ticket.priority - 1]}</p>
 
             <button onClick={() => handleEdit(ticket)}>Edit</button>
+
             <button onClick={() => handleDelete(ticket.id)}>Delete</button>
           </div>
         ))}
